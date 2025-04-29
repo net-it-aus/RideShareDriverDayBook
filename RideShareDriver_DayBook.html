@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <!-- SEO -->
+
+        <meta charset="UTF-8"/>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+        <meta name="description" content="Ride Share Day Book"/>
+        <meta name="keywords" content="Ride Share Day Book, Ride Share Day Book"/> 
+        <meta name="author" content="Ride Share Day Book"/>
+
+        <title>Ride Share Day Book</title>
+
+    <!-- SEO -->
+
+    <!-- <link rel="icon" type="image/png" href="___RideShareDayBook.png"/> -->
+    <!-- <link rel="shortcut icon" type="image/jpg" href="___RideShareDayBook.png"/> -->
+
+    <style>
+        body {
+            display:flex;
+            flex-direction: column;
+            margin: 0; /* Removes default margin */
+            min-height: 100vh; /* Ensures the body takes up the full viewport height */
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            background-color: silver;
+            font-size:1.25rem;
+        }
+        main {
+            flex: 1; /* Expands to fill available space */
+        }
+        footer{
+            background-color: #333; /* Optional: styling for the footer */
+            color: white; /* Optional: text color */
+            text-align: center; /* Optional: center-align text */
+            padding: 10px;
+        }
+        h1 {
+            color: #0073e6;
+            /* font-size: 1.5rem; */
+        }
+        p {
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        button {
+            font-size:1.25rem;
+            border-radius: 7px;
+        }
+        .highlight {
+            background-color: yellow;
+        }
+        .align-content-right {
+            display: flex;
+            justify-content: flex-end;
+        }
+        /* Ensure the modal covers the entire screen */
+            .modal {
+                /* display: flex; */
+                display: none;
+                font-size: 1.25rem;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                justify-content: center;
+                align-items: center;
+                background-color: rgba(0, 0, 0, 0.5); /* Adds a semi-transparent background */
+                z-index: 1000; /* Ensures it's above all other DOM elements */
+            }
+        /* Modal content */
+            .modal-content {
+                font-size: 1.25rem;
+                background: white;
+                padding: 20px;
+                border-radius: 11px;
+                text-align: center;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            }
+            .modal-content p {
+                font-size: 1.25rem;
+            }
+        /* Ensure the modal covers the entire screen */
+        .splash {
+                display: flex;
+                font-size: 1.25rem;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                justify-content: center;
+                align-items: center;
+                background-color: rgba(0, 0, 0, 0.5); /* Adds a semi-transparent background */
+                z-index: 1000; /* Ensures it's above all other DOM elements */
+            }
+        /* Modal content */
+            .splash-content {
+                font-size: 1.25rem;
+                background: white;
+                padding: 20px;
+                border-radius: 11px;
+                text-align: center;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            }
+            .modal-content p {
+                font-size: 1.25rem;
+            }
+    </style>
+
+    <!-- <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script> -->
+
+    <script defer>
+
+        const consoleLog = false;
+
+        let startTrip = false;
+        let endTripEarly = false;
+        let endTrip = false;
+        let cancelTrip_Rider = false;
+        let cancelTrip_Driver = false;
+        let enRoute = false;
+        let poolPickup = false;
+        let poolDropoff = false;
+        let wayPoint = false;
+        let getMyLocation = false;
+        let customModalFormPrompt = "";
+
+        // window.onload START
+            window.onload = function() {
+
+                document.getElementById("splash").style.display="none";
+
+                if(consoleLog){console.log("Page has reloaded!");}
+                // document.addEventListener("keydown", function(event) {
+                //     if (event.key === "F5") {
+                //         event.preventDefault(); // Intercepts the F5 key press to prevent reload
+                //         alert("Page reload disabled!");
+                //     }
+                // });
+
+                let isPageDirty = false;
+                window.addEventListener("input", () => {
+                    isPageDirty = true;
+                });
+                window.onbeforeunload = function() {
+                    if (isPageDirty) {
+                        return ""; // Standardized prompt will still appear
+                    }
+                };
+
+                function addDOMeventListeners(){
+                    document.getElementById("customModalResponseYes").addEventListener('click', () => {
+                        customModalFormResponse('yes');
+                    });
+                    document.getElementById("customModalResponseNo").addEventListener('click', () => {
+                        customModalFormResponse('no');
+                    });
+                    document.getElementById("buttonStartTrip").addEventListener('click', () => {
+                        getLocation(`startTrip`);
+                    });
+                    document.getElementById("buttonStartPoolpickup").addEventListener('click', () => {
+                        getLocation(`poolPickup`);
+                    });
+                    document.getElementById("buttonStartWaypoint").addEventListener('click', () => {
+                        getLocation(`wayPoint`);
+                    });
+                    document.getElementById("buttonEndPooldropoff").addEventListener('click', () => {
+                        getLocation(`poolDropoff`);
+                    });
+                    document.getElementById("buttonEndTripEarly").addEventListener('click', () => {
+                        getLocation(`endTripEarly`);
+                    });
+                    document.getElementById("buttonEndTrip").addEventListener('click', () => {
+                        getLocation(`endTrip`);
+                    });
+                    document.getElementById("buttonCancelTrip_Rider").addEventListener('click', () => {
+                        getLocation(`cancelTrip_Rider`);
+                    });
+                    document.getElementById("buttonCancelTrip_Driver").addEventListener('click', () => {
+                        getLocation(`cancelTrip_Driver`);
+                    });
+                    document.getElementById("listLocalStorageSortNormal").addEventListener('click', () => {
+                        listSortedLocalStorage('normal');
+                    });
+                    document.getElementById("listLocalStorageSortReverse").addEventListener('click', () => {
+                        listSortedLocalStorage('reverse');
+                    });
+                    document.getElementById("localStorageClear_1").addEventListener('click', () => {
+                        listSortedLocalStorage('clear');
+                    });
+                    document.getElementById("localStorageClear_2").addEventListener('click', () => {
+                        listSortedLocalStorage('clear');
+                    });
+                    document.getElementById("localStorageDelete").addEventListener('click', () => {
+                        customModalFormShow(`Are you sure?  ALL local storage will be deleted and un-recoverable.`);
+                    });
+                    document.getElementById("getLocation").addEventListener('click', () => {
+                        getLocation(`getMyLocation`);
+                    });
+                    document.getElementById("reportAllToFileCsv").addEventListener('click', () => {
+                        reportAllToFileCsv();
+                    });
+                }
+                addDOMeventListeners();
+
+                function getStreetName(lat, lng) {
+                    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`;
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.address && data.address.road) {
+                                let streetNumber = data.address.house_number;
+                                let myStreetNum = "";
+                                if (typeof streetNumber === "undefined") {
+                                    if(consoleLog){console.log("data.address.house_number is:",data.address.house_number);}
+                                } else {
+                                    myStreetNum = streetNumber;
+                                }
+                                const streetName = data.address.road;
+                                const suburbName = data.address.suburb;
+                                const cityName = data.address.city;
+                                const townName = data.address.town;
+                                const newDateTime = new Date();
+                                let myYear = newDateTime.getFullYear();
+                                let myMonth = newDateTime.getMonth()+1; 
+                                if (myMonth<10){myMonth="0" + myMonth;}
+                                let myDate = newDateTime.getDate();
+                                if (myDate<10){myDate="0" + myDate;}
+                                let myHour = newDateTime.getHours();
+                                if (myHour<10){myHour="0" + myHour;}
+                                let myMinute = newDateTime.getMinutes();
+                                if (myMinute<10){myMinute="0" + myMinute;}
+                                let mySecond = newDateTime.getSeconds();
+                                if (mySecond<10){mySecond="0" + mySecond;}
+                                const myLocalStorageKey = myYear + '-' + myMonth + '-' + myDate + ' ' + myHour + ':' + myMinute + ':' + mySecond;
+                                if(consoleLog){console.log(myLocalStorageKey);}
+
+                                const newDateTimeString = newDateTime.toLocaleString();
+                                const myDateTime = newDateTimeString.slice(0);
+                                if(consoleLog){console.log("Street Name: " + streetName);}
+                                if(consoleLog){console.log("Date & time: " + myDateTime);}
+                                let myAddress = ``;
+                                let lenStart = 0;
+                                let lenEnd = 0;
+                                let lenGreatest = 0;
+                                if (startTrip){
+                                    if(consoleLog){console.log(myHour + ':' + myMinute + ':' + mySecond + `___tripSTART`);}
+                                    myAddress = `[{"location":"${myStreetNum} _ ${streetName} _ ${suburbName} _ ${cityName} <br>___tripSTART"},{"coordinates":"${lat} ${lng}"}]`;
+                                    let jsonArray = JSON.parse(myAddress);
+                                    // jsonArray = jsonArray.replace(/\n/g, "<br>");
+                                    document.getElementById("myStartLocation").innerHTML = jsonArray[0].location;
+                                    localStorage.setItem(myLocalStorageKey,"\n" + myAddress)
+                                    startTrip = false;
+                                    enRoute = true;
+                                    document.getElementById("myEndLocation").innerHTML = "...";
+                                    document.getElementById("myLocationLatLng").innerHTML = "...";
+                                }
+                                if (poolPickup){
+                                    if(consoleLog){console.log(myHour + ':' + myMinute + ':' + mySecond + `___poolSTART`);}
+                                    myAddress = `[{"location":"${myStreetNum} _ ${streetName} _ ${suburbName} _ ${cityName} <br>___poolSTART"},{"coordinates":"${lat} ${lng}"}]`;
+                                    let jsonArray = JSON.parse(myAddress);
+                                    document.getElementById("myStartLocation").innerHTML += `<br>` + jsonArray[0].location;
+                                    localStorage.setItem(myLocalStorageKey,"\n" + myAddress)
+                                    poolPickup = false;
+                                    enRoute = true;
+                                    document.getElementById("myLocationLatLng").innerHTML = "...";
+                                }
+                                if (wayPoint){
+                                    if(consoleLog){console.log(myHour + ':' + myMinute + ':' + mySecond + `___wayPOINT`);}
+                                    myAddress = `[{"location":"${myStreetNum} _ ${streetName} _ ${suburbName} _ ${cityName} <br>___wayPOINT"},{"coordinates":"${lat} ${lng}"}]`;
+                                    let jsonArray = JSON.parse(myAddress);
+                                    document.getElementById("myStartLocation").innerHTML += `<br>` + jsonArray[0].location;
+                                    localStorage.setItem(myLocalStorageKey,"\n" + myAddress)
+                                    wayPoint = false;
+                                    enRoute = true;
+                                    document.getElementById("myLocationLatLng").innerHTML = "...";
+                                }
+                                if (poolDropoff){
+                                    if(consoleLog){console.log(myHour + ':' + myMinute + ':' + mySecond + `___poolEND`);}
+                                    myAddress = `[{"location":"${myStreetNum} _ ${streetName} _ ${suburbName} _ ${cityName} <br>___poolDROPOFF"},{"coordinates":"${lat} ${lng}"}]`;
+                                    let jsonArray = JSON.parse(myAddress);
+                                    document.getElementById("myEndLocation").innerHTML += `<br>` + jsonArray[0].location;
+                                    localStorage.setItem(myLocalStorageKey,"\n" + myAddress)
+                                    poolDropoff = false;
+                                    enRoute = true;
+                                    document.getElementById("myLocationLatLng").innerHTML = "...";
+                                }
+                                if (endTripEarly){
+                                    if(consoleLog){console.log(myHour + ':' + myMinute + ':' + mySecond + `___tripEND_early`);}
+                                    myAddress = `[{"location":"${myStreetNum} _ ${streetName} _ ${suburbName} _ ${cityName} <br>___tripEND_early"},{"coordinates":"${lat} ${lng}"}]`;
+                                    let jsonArray = JSON.parse(myAddress);
+                                    document.getElementById("myEndLocation").innerHTML += `<br>` + jsonArray[0].location;
+                                    localStorage.setItem(myLocalStorageKey,"\n" + myAddress)
+                                    lenEnd = myAddress.length
+                                    // add ending item with special character to separate trips START
+                                        lenGreatest = lenStart;
+                                        if(lenEnd>lenStart){lenGreatest=lenEnd;}
+                                        myChr = "~";
+                                        myAddress = `[{"location":"${myChr.repeat(lenGreatest * 0.8)}"},{"coordinates":"... ..."}]`;
+                                        localStorage.setItem(myLocalStorageKey + myChr,"\n" + myAddress)
+                                        setTimeout(
+                                            () => {
+                                                document.getElementById("myStartLocation").innerHTML = "...";
+                                                document.getElementById("myEndLocation").innerHTML = "...";
+                                                document.getElementById("myLocationLatLng").innerHTML = "...";
+                                            }
+                                        ,3000);
+                                        endTripEarly = false;
+                                        enRoute = false;
+                                    // add ending item with special character to separate trips START
+                                }
+                                if (endTrip){
+                                    if(consoleLog){console.log(myHour + ':' + myMinute + ':' + mySecond + `___tripEND`);}
+                                    myAddress = `[{"location":"${myStreetNum} _ ${streetName} _ ${suburbName} _ ${cityName} <br>___tripEND"},{"coordinates":"${lat} ${lng}"}]`;
+                                    let jsonArray = JSON.parse(myAddress);
+                                    document.getElementById("myEndLocation").innerHTML += `<br>` + jsonArray[0].location;
+                                    localStorage.setItem(myLocalStorageKey,"\n" + myAddress)
+                                    lenEnd = myAddress.length
+                                    // add ending item with special character to separate trips START
+                                        lenGreatest = lenStart;
+                                        if(lenEnd>lenStart){lenGreatest=lenEnd;}
+                                        myChr = "~";
+                                        myAddress = `[{"location":"${myChr.repeat(lenGreatest * 0.8)}"},{"coordinates":"... ..."}]`;
+                                        localStorage.setItem(myLocalStorageKey + myChr,"\n" + myAddress)
+                                        setTimeout(
+                                            () => {
+                                                document.getElementById("myStartLocation").innerHTML = "...";
+                                                document.getElementById("myEndLocation").innerHTML = "...";
+                                                document.getElementById("myLocationLatLng").innerHTML = "...";
+                                            }
+                                        ,3000);
+                                        endTrip = false;
+                                        enRoute = false;
+                                    // add ending item with special character to separate trips START
+                                }
+                                if (cancelTrip_Rider){
+                                    if(consoleLog){console.log(myHour + ':' + myMinute + ':' + mySecond + `___tripCANCELLED_Rider`);}
+                                    myAddress = `[{"location":"${myStreetNum} _ ${streetName} _ ${suburbName} _ ${cityName} <br>___tripCANCELLED_Rider"},{"coordinates":"${lat} ${lng}"}]`;
+                                    let jsonArray = JSON.parse(myAddress);
+                                    document.getElementById("myEndLocation").innerHTML += `<br>` + jsonArray[0].location;
+                                    localStorage.setItem(myLocalStorageKey,"\n" + myAddress)
+                                    lenEnd = myAddress.length
+                                    // add ending item with special character to separate trips START
+                                        lenGreatest = lenStart;
+                                        if(lenEnd>lenStart){lenGreatest=lenEnd;}
+                                        myChr = "~";
+                                        myAddress = `[{"location":"${myChr.repeat(lenGreatest * 0.8)}"},{"coordinates":"... ..."}]`;
+                                        localStorage.setItem(myLocalStorageKey + myChr,"\n" + myAddress)
+                                        setTimeout(
+                                            () => {
+                                                document.getElementById("myStartLocation").innerHTML = "...";
+                                                document.getElementById("myEndLocation").innerHTML = "...";
+                                                document.getElementById("myLocationLatLng").innerHTML = "...";
+                                            }
+                                        ,3000);
+                                        cancelTrip_Rider = false;
+                                        enRoute = false;
+                                    // add ending item with special character to separate trips START
+                                }
+                                if (cancelTrip_Driver){
+                                    if(consoleLog){console.log(myHour + ':' + myMinute + ':' + mySecond + `___tripCANCELLED_Driver`);}
+                                    myAddress = `[{"location":"${myStreetNum} _ ${streetName} _ ${suburbName} _ ${cityName} <br>___tripCANCELLED_Driver"},{"coordinates":"${lat} ${lng}"}]`;
+                                    let jsonArray = JSON.parse(myAddress);
+                                    document.getElementById("myEndLocation").innerHTML += `<br>` + jsonArray[0].location;
+                                    localStorage.setItem(myLocalStorageKey,"\n" + myAddress)
+                                    lenEnd = myAddress.length
+                                    // add ending item with special character to separate trips START
+                                        lenGreatest = lenStart;
+                                        if(lenEnd>lenStart){lenGreatest=lenEnd;}
+                                        myChr = "~";
+                                        myAddress = `[{"location":"${myChr.repeat(lenGreatest * 0.8)}"},{"coordinates":"... ..."}]`;
+                                        localStorage.setItem(myLocalStorageKey + myChr,"\n" + myAddress)
+                                        setTimeout(
+                                            () => {
+                                                document.getElementById("myStartLocation").innerHTML = "...";
+                                                document.getElementById("myEndLocation").innerHTML = "...";
+                                                document.getElementById("myLocationLatLng").innerHTML = "...";
+                                            }
+                                        ,3000);
+                                        cancelTrip_Rider = false;
+                                        enRoute = false;
+                                    // add ending item with special character to separate trips START
+                                }
+                                if (getMyLocation){
+                                    if(consoleLog){console.log(myHour + ':' + myMinute + ':' + mySecond + `...getMyLocation`);}
+                                    // Combine the values, filter out undefined, and join the rest
+                                    // const myLocation = [streetNumber, `${streetName}<br>`, `${suburbName}<br>`, `${cityName}<br>`, `${townName}<br>`, `lat: ${lat} lng: ${lng}`]
+                                    const myLocation = [streetNumber, streetName, suburbName, cityName, townName, `lat: ${lat} lng: ${lng}`]
+                                        .filter(item => item !== undefined) // Remove undefined values
+                                        .join(" <br>"); // Join the remaining values with a space
+                                    document.getElementById("myLocation").innerHTML = myLocation;
+                                    document.getElementById("myLocationLatLng").innerHTML = "...";
+                                    getMyLocation = false;
+                                }
+                            } else {
+                                if(consoleLog){console.log("No street name found");}
+                            }
+                        })
+                        .catch(error => {
+                            // console.error("Error fetching data: ", error);
+                        });
+                }
+
+                function getLocation(x) {
+                    if (navigator.geolocation) {
+                        if (x===`startTrip`){
+                            startTrip = true;
+                        }
+                        if (x===`poolPickup`){
+                            poolPickup = true;
+                        }
+                        if (x===`poolDropoff`){
+                            poolDropoff = true;
+                        }
+                        if (x===`wayPoint`){
+                            wayPoint = true;
+                        }
+                        if (x===`endTripEarly`){
+                            endTripEarly = true;
+                        }
+                        if (x===`endTrip`){
+                            endTrip = true;
+                        }
+                        if (x===`cancelTrip_Rider`){
+                            cancelTrip_Rider = true;
+                        }
+                        if (x===`cancelTrip_Driver`){
+                            cancelTrip_Driver = true;
+                        }
+                        if (x===`getMyLocation`){
+                            getMyLocation = true;
+                        }
+                        // navigator.geolocation.getCurrentPosition(showPosition, showError);
+                        navigator.geolocation.getCurrentPosition((position) => {
+                            const accuracy = position.coords.accuracy;
+                            if (accuracy > 1000) {
+                                alert("Your location might be imprecise. Ensure location services are enabled and consider using a device with a SIM card.");
+                            } else {
+                                if(consoleLog){console.log("Location:", position.coords);}
+                            }
+                            showPosition(position);
+                        },
+                            (error) => {
+                                alert("Unable to retrieve location. Please check your device settings.");
+                                if(consoleLog){console.error("Geolocation error:", error.message);}
+                            }
+                        );
+                    } else {
+                        document.getElementById("myStartLocation").innerHTML = "Geolocation is not supported by this browser.";
+                        alery("Geolocation is not supported by this browser.");
+                    }
+                }
+
+                function showPosition(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    // if (startTrip){
+                    //     document.getElementById("myStartLocationLatLng").innerHTML = "Latitude: " + lat + " Longitude: " + lng;
+                    //     getStreetName(lat,lng);
+                    // }
+                    // if (poolPickup){
+                    //     document.getElementById("myStartLocationLatLng").innerHTML = "Latitude: " + lat + " Longitude: " + lng;
+                    //     getStreetName(lat,lng);
+                    // }
+                    // if (poolDropoff){
+                    //     document.getElementById("myStartLocationLatLng").innerHTML = "Latitude: " + lat + " Longitude: " + lng;
+                    //     getStreetName(lat,lng);
+                    // }
+                    // if (wayPoint){
+                    //     document.getElementById("myStartLocationLatLng").innerHTML = "Latitude: " + lat + " Longitude: " + lng;
+                    //     getStreetName(lat,lng);
+                    // }
+                    // if (endTrip){
+                    //     document.getElementById("myStartLocationLatLng").innerHTML = "Latitude: " + lat + " Longitude: " + lng;
+                    //     getStreetName(lat,lng);
+                    // }
+                    // if (getMyLocation){
+                        // document.getElementById("myEndLocation").innerHTML = "Latitude: " + lat + " Longitude: " + lng;
+                        getStreetName(lat,lng);
+                    // } else {
+                        document.getElementById("myLocationLatLng").innerHTML = "Latitude: " + lat + " Longitude: " + lng;
+                    // }
+                }
+
+                function showError(error) {
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            document.getElementById("myStartLocation").innerHTML = "User denied the request for Geolocation.";
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            document.getElementById("myStartLocation").innerHTML = "Location information is unavailable.";
+                            break;
+                        case error.TIMEOUT:
+                            document.getElementById("myStartLocation").innerHTML = "The request to get user location timed out.";
+                            break;
+                        case error.UNKNOWN_ERROR:
+                            document.getElementById("myStartLocation").innerHTML = "An unknown error occurred.";
+                            break;
+                    }
+                }
+
+                function listSortedLocalStorage(mySortOrder) {
+                    if(consoleLog){console.log(mySortOrder);}
+                    const localStorageList = document.getElementById('localStorageList');
+                    localStorageList.innerHTML = ""; // Clear previous entries
+
+                    if (localStorage.length === 0) {
+                        localStorageList.innerHTML = "<li>No records found.</li>";
+                        return;
+                    }
+                    if (mySortOrder==='clear'){
+                        localStorageList.innerHTML = "...";
+                        return;
+                    }
+
+                    // Retrieve all keys and sort them alphabetically
+                    let sortedKeys;
+                    if(mySortOrder==='normal'){
+                        sortedKeys = Object.keys(localStorage).sort();
+                    }else {
+                        sortedKeys = Object.keys(localStorage).sort().reverse();
+                    }
+
+                    // Iterate through the sorted keys
+                    let myValue = "";
+                    let lenStart = 0;
+                    let lenEnd = 0;
+                    let lenGreatest = 0;
+                    let myCount = 0;
+                    let myDateText = "";
+                    let localStorageValue = "";
+                    let jsonArray = [];
+                    myDateText = sortedKeys[0].slice(0,10);
+                    for (const key of sortedKeys) {
+                        localStorageValue = null;
+                        if (myDateText===key.slice(0,10)){
+                            myCount += 1;
+                        }else{
+                            myCount = 0;
+                            myDateText = key.slice(0,10);
+                        }
+                        localStorageValue = localStorage.getItem(key);
+                        if(consoleLog){console.log(localStorageValue);}
+                        // Step 2: Check if the data exists
+                            if (localStorageValue) {
+                                // Step 3: Parse the JSON string into a JavaScript array
+                                    jsonArray = JSON.parse(localStorageValue);
+                                    if(consoleLog){console.log(jsonArray);} // This will log the array of JSON objects
+                            } else {
+                                if(consoleLog){console.log('No data found in localStorage.');}
+                                continue;
+                            }
+                        const listItem = document.createElement("li");
+                        listItem.style.listStyleType = "none";
+                        myValue = jsonArray[0].location;
+                        myValue = myValue.replace(/\n/g, "<br>");
+                        if(myValue.includes("~")){
+                            if(mySortOrder==='normal'){
+                                listItem.innerHTML = `${myCount}<hr style="border:1px solid black;">`;
+                            } else {
+                                listItem.innerHTML = `<hr style="border:1px solid black;">${myCount}`;
+                            }
+                        }else if(myValue.includes("...")){
+                            listItem.innerHTML = `${myCount}<hr style="border:1px solid black;">`;
+                        }else{
+                            myCount -= 1;
+                            listItem.innerHTML = `${key}:<br> ${myValue}`;
+                        }
+                        localStorageList.appendChild(listItem);
+                    }
+
+                    // document.getElementById("myStartLocation").innerHTML = "...";
+                    // document.getElementById("myEndLocation").innerHTML = "...";
+                }
+
+                function customModalFormShow(myPrompt){
+                    customModalFormPrompt = myPrompt;
+                    document.getElementById("customModal").style.display = "flex";
+                    document.getElementById("customModalFormPrompt").innerHTML = customModalFormPrompt;
+                }
+
+                function customModalFormResponse(myResponse) {
+                    switch(customModalFormPrompt) {
+                        case "Are you sure?  ALL local storage will be deleted and un-recoverable.":
+                            // if(!x){
+                            //     document.getElementById("customModal").style.display = "flex";
+                            //     customModalFormPrompt = "Are you sure?  ALL local storage will be deleted and un-recoverable.";
+                            //     document.getElementById("customModalFormPrompt").innerHTML = customModalFormPrompt;
+                            // }
+                            if(myResponse==='yes'){
+                                localStorage.clear(); // deletes all local storage
+                                listSortedLocalStorage('');
+                                document.getElementById("customModal").style.display = "none";
+                            }
+                            if(myResponse==='no'){
+                                document.getElementById("customModal").style.display = "none";
+                            }
+                            break;
+                        case "Start type?":
+                            if(myResponse==='yes'){
+                                if(consoleLog){console.log("pool yes");}
+                                poolPickup = true;
+                                document.getElementById("customModal").style.display = "none";
+                            }
+                            if(myResponse==='no'){
+                                if(consoleLog){console.log("pool no");}
+                                poolPickup = false;
+                                document.getElementById("customModal").style.display = "none";
+                            }
+                            break;
+                        }
+                }
+
+                function reportAllToFileCsv() {
+
+                    // function generateLocalStorageCSV() {
+                    //     let csvContent = "Key,Value\n"; // CSV Header
+                    //     for (let i = 0; i < localStorage.length; i++) {
+                    //         const key = localStorage.key(i);
+                    //         const value = localStorage.getItem(key);
+                    //         const escapedKey = `"${key.replace(/"/g, '""')}"`; // Escape quotes
+                    //         const escapedValue = `"${value.replace(/"/g, '""')}"`;
+                    //         csvContent += `${escapedKey},${escapedValue}\n`;
+                    //     }
+                    //     return csvContent;
+                    // }
+
+                    // function saveCSVToFile() {
+                    //     // Create CSV content
+                    //     let csvContent = "Key,Value\n";
+                    //     for (let i = 0; i < localStorage.length; i++) {
+                    //         const key = localStorage.key(i);
+                    //         const value = localStorage.getItem(key);
+                    //         csvContent += `"${key.replace(/"/g, '""')}","${value.replace(/"/g, '""')}"\n`;
+                    //     }
+                    //     // Create a Blob object from CSV content
+                    //     const blob = new Blob([csvContent], { type: "text/csv" });
+                    //     // Create a temporary download link
+                    //     const link = document.createElement("a");
+                    //     link.href = URL.createObjectURL(blob);
+                    //     link.download = "localStorage.csv"; // Name of the file
+                    //     document.body.appendChild(link);
+                    //     // Trigger the download
+                    //     link.click();
+                    //     // Cleanup
+                    //     document.body.removeChild(link);
+                    //     URL.revokeObjectURL(link.href);
+                    // }
+                    // // Call the function
+                    // saveCSVToFile();
+
+                    // function saveCSVToFile() {
+                    //     // Create CSV content
+                    //         let csvContent = "Key,Value\n"; // CSV Header
+                    //     for (let i = 0; i < localStorage.length; i++) {
+                    //         const key = localStorage.key(i); // Get the key
+                    //         const value = localStorage.getItem(key); // Get the value
+                    //         // Ensure keys and values are included and escaped for CSV format
+                    //             const escapedKey = `"${key.replace(/"/g, '""')}"`;
+                    //             const escapedValue = `"${value ? value.replace(/"/g, '""') : ""}"`;
+                    //             csvContent += `${escapedKey},${escapedValue}\n`;
+                    //     }
+                    //     if(consoleLog){console.log(csvContent);
+                    //     // Create a Blob object from the CSV content
+                    //         const blob = new Blob([csvContent], { type: "text/csv" });
+                    //     // Create a temporary download link
+                    //         const link = document.createElement("a");
+                    //         link.href = URL.createObjectURL(blob);
+                    //         link.download = "localStorage.csv"; // Name of the file
+                    //         document.body.appendChild(link);
+                    //     // Trigger the download
+                    //         link.click();
+                    //     // Cleanup
+                    //         document.body.removeChild(link);
+                    //         URL.revokeObjectURL(link.href);
+                    // }
+                    // // Call the function
+                    //     saveCSVToFile();
+
+                    function saveSortedCSVToFile() {
+                        // Create an array to store key-value pairs
+                            let items = [];
+                            for (let i = 0; i < localStorage.length; i++) {
+                                const key = localStorage.key(i);
+                                const value = localStorage.getItem(key);
+                                items.push({ key, value });
+                            }
+                        // Sort the items by their keys alphabetically
+                            items.sort((a, b) => a.key.localeCompare(b.key));
+                        // Create CSV content
+                            let csvContent = "Key,Value\n"; // CSV Header
+                            items.forEach(item => {
+                                // const escapedKey = `"${item.key.replace(/"/g, '""')}"`;
+                                const escapedKey = `"${item.key.replace(/"/g, '""').replace(/\n/g, '')}"`;
+                                // const escapedValue = `"${item.value ? item.value.replace(/"/g, '""') : ""}"`;
+                                // const escapedValue = `"${item.value ? item.value.replace(/"/g, '""').replace(/\n/g, '') : ""}"`;
+                                const escapedValue = `"${item.value ? item.value.replace(/"/g, '""').replace(/\n/g, '').replace("<br>","") : ""}"`;
+                                if(consoleLog){console.log(escapedValue);}
+                                const myChar = escapedKey.charAt(escapedKey.length - 2);
+                                if(consoleLog){console.log(myChar);}
+                                if(myChar==="~"){
+                                    csvContent += `${escapedKey},${escapedValue}\n`;
+                                }else{
+                                    csvContent += `${escapedKey}~,${escapedValue}\n`;
+                                }
+                            });
+                        // Create a Blob object from the CSV content
+                            const blob = new Blob([csvContent], { type: "text/csv" });
+                        // Create a temporary download link
+                            const link = document.createElement("a");
+                            link.href = URL.createObjectURL(blob);
+                            link.download = "sortedLocalStorage.csv"; // Name of the file
+                            document.body.appendChild(link);
+                        // Trigger the download
+                            link.click();
+                        // Cleanup
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(link.href);
+                    }
+                    // Call the function
+                        saveSortedCSVToFile();
+
+                }
+
+            }
+        // window.onload END
+
+
+    </script>
+
+</head>
+<body>
+
+    <div id="bodyElement" class="fade-out">
+
+        <main id="main-content">
+
+            <section id="splash" class="splash">
+                <div id="loadingMessage" class="splash-content">...loading</div>
+            </section>
+          
+            <section id="customModal" class="modal">
+                <div id="customModalForm" class="modal-content">
+                    <p id="customModalFormPrompt"></p>
+                    <!-- <button style="padding:15px;margin:15px;" onclick="deleteLocalStorage('yes')">Yes</button> -->
+                    <!-- <button style="padding:15px;margin:15px;" onclick="deleteLocalStorage('no')">No</button> -->
+                    <button id="customModalResponseYes" style="padding:15px;margin:15px;" >Yes</button>
+                    <button id="customModalResponseNo" style="padding:15px;margin:15px;" >No</button>
+                </div>
+            </section>
+
+            <section id="dayBook">
+                <div id="myLocationLatLng" style="color:red;">...</div>
+                <button id="buttonStartTrip" style="margin-top:5px;margin-left:5px;padding:15px;color:white;background-color: green;" >Start trip</button>
+                <button id="buttonStartPoolpickup" style="margin-top:5px;margin-left:5px;padding:15px;color:white;background-color: green;" >Pool pickup</button>
+                <button id="buttonStartWaypoint" style="margin-top:5px;margin-left:5px;padding:15px;color:white;background-color: green;" >Way point</button>
+                <div id="myStartLocation">...</div>
+                <hr style="height:0.1px;border:1px solid black;background-color: black;">
+                <div style="display:flex;justify-content: flex-end;">
+                    <button id="buttonEndPooldropoff" style="margin-top:5px;margin-right:5px;padding:15px;color:white;background-color:red;" >Pool dropoff</button>
+                    <button id="buttonEndTripEarly" style="margin-top:5px;margin-right:5px;padding:15px;color:white;background-color:red;" >End trip early</button>
+                    <button id="buttonEndTrip" style="margin-top:5px;margin-right:5px;padding:15px;color:white;background-color:red;" >End trip</button>
+                </div>
+                <div id="myEndLocation">...</div>
+                <hr style="height:0.1px;border:1px solid black;background-color: black;">
+                <div style="display:flex;justify-content: flex-end;">
+                    <button id="buttonCancelTrip_Rider" style="margin-top:15px;margin-left:auto;margin-right:auto;padding:15px;color:black;background-color:orange;" >Cancel trip - by RIDER</button>
+                    <button id="buttonCancelTrip_Driver" style="margin-top:15px;margin-left:auto;margin-right:auto;padding:15px;color:black;background-color:orange;" >Cancel trip - by DRIVER</button>
+                </div>
+            </section>
+
+            <section id="myLocalStorageRecords" style="background-color: antiquewhite;">
+                <hr style="height:2px;border:1px solid black;background-color: black;">
+                <button id="listLocalStorageSortNormal" style="margin-top:5px;margin-left:5px;padding:15px;color:blue;background-color: chartreuse;" >List trips - FIRST &rarr; last</button>
+                <button id="listLocalStorageSortReverse" style="margin-top:5px;margin-left:5px;padding:15px;color:blue;background-color: chartreuse;" >List trips - LAST &rarr; first</button>
+                <br><button id="localStorageClear_1" style="margin-top:5px;margin-left:5px;padding:15px;color:white;background-color: brown;" >Clear list</button>
+                <ul id="localStorageList"></ul>
+                <hr style="height:0.1px;border:1px solid black;background-color:black;">
+                <div style="display:flex;justify-content: space-between;">
+                    <button id="localStorageClear_2" style="margin-top:5px;margin-left:5px;padding:15px;color:white;background-color: brown;" >Clear list</button>
+                    <button id="localStorageDelete" style="margin-top:5px;margin-left:5px;padding:15px;font-weight:bold;color:red;background-color:white;border:3px solid red;" >DELETE List</button>
+                </div>
+                <hr style="height:2px;border:1px solid black;background-color:black;">
+            </section>
+
+            <section id="getMyLocation">
+                <br>
+                <button id="getLocation" style="margin-top:5px;margin-left:5px;padding:15px;color:black;background-color: sandybrown;" >Check current location:-</button>
+                <div id="myLocation">...</div>
+            </section>
+
+            <section id="myReports">
+                <br>
+                <button id="reportAllToFileCsv" style="margin-top:5px;margin-left:5px;padding:15px;color:white;background-color:blueviolet;" >Report all - to file/download - csv format.</button>
+            </section>
+
+            <br>
+
+        </main>
+        <footer>
+            <br>
+            <div>&copy Net IT Australia</div>
+            <div>Ride Share Day Book</div>
+            <br>
+        </footer>
+    </div>
+</body>
+</html>
